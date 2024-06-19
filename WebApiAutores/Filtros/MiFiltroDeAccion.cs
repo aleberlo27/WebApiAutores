@@ -2,6 +2,7 @@
 
 namespace WebApiAutores.Filtros
 {
+    /*
     public class MiFiltroDeAccion : IActionFilter
     {
         private readonly ILogger<MiFiltroDeAccion> logger;
@@ -24,4 +25,5 @@ namespace WebApiAutores.Filtros
         }
 
     }
+    */
 }

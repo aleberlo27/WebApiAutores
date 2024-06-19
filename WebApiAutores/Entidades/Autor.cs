@@ -5,14 +5,14 @@ using WebApiAutores.Validaciones;
 namespace WebApiAutores.Entidades
 {
     //CON REGLAS DE ATRIBUTOS
-    public class Autor : IValidatableObject
+    public class Autor //: IValidatableObject
     {
         public int Id { get; set; }
         [Required(ErrorMessage = "El nombre del autor es requerido.")]
         [StringLength(maximumLength: 120, ErrorMessage = "El campo {0} no puede tener mas de {1} caracteres. ")]
         [PrimeraLetraMayuscula]
         public string Nombre { get; set; }
-         
+
         /*
          
             //Rango de edad
@@ -34,7 +34,7 @@ namespace WebApiAutores.Entidades
             public int Menor { get; set; }  
             public int Mayor { get; set; }
 
-        */
+        
         public List<Libro> Libros { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
@@ -49,12 +49,12 @@ namespace WebApiAutores.Entidades
                 }
 
             }
-            /*
+            
             if (Menor > Mayor)
             {
                 yield return new ValidationResult("Este valor no puede ser más grande que el campo mayor.", new string[] { nameof(Nombre) });
-            }
-            */
+            }        
         }
+        */
     }
 }

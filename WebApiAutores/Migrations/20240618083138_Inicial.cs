@@ -9,7 +9,7 @@ namespace WebApiAutores.Migrations
      * Cuando en la terminal de Nu-Get (administrador de paquetes) hemos puesto Add-Migration Initial
      * nos crea una tabla como la que vemos ahí: nombre de la tabla Autores y tiene como campos el Id
      * y el nombre, como primary key usamos el id del autor 
-     */
+     
 
     public partial class Inicial : Migration
     {
@@ -37,4 +37,5 @@ namespace WebApiAutores.Migrations
                 name: "Autores");
         }
     }
+    */
 }

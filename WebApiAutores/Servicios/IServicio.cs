@@ -2,6 +2,7 @@
 {
     public interface IServicio
     {
+        /*
         Guid ObrenerScoped();
         Guid ObrenerSingleton();
         Guid ObrenerTransient();
@@ -54,8 +55,10 @@
                
             }
         }
+        */
     }
 
+    /*
     public class ServicioTransient
     {
         public Guid Guid = Guid.NewGuid();
@@ -70,4 +73,6 @@
     {
         public Guid Guid = Guid.NewGuid();
     }
+    */
 }
+

@@ -4,6 +4,7 @@
 
 namespace WebApiAutores.Migrations
 {
+    /*
     /// <inheritdoc />
     public partial class Libros : Migration
     {
@@ -43,4 +44,5 @@ namespace WebApiAutores.Migrations
                 name: "Libros");
         }
     }
+    */
 }
