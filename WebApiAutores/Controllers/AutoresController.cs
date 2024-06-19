@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApiAutores.Entidades;
 using WebApiAutores.Filtros;
-using WebApiAutores.Servicios;
 
 namespace WebApiAutores.Controllers
 {
@@ -11,88 +10,22 @@ namespace WebApiAutores.Controllers
 
     [ApiController] //Permite hacer validaciones automaticas respecto a la data recibida en nuestro controlador
     [Route("api/autores")] //Declaramos la ruta en la que = esta clase va a recibir las peticiones
-    //Si quisieramos proteger todas las peticiones HTTP deberíamos poner aquí arriba al controller [Authorize] 
+    
     public class AutoresController : ControllerBase
     {
 
         private readonly ApplicationDbContext context;
-        /*
-        private readonly IServicio servicio;
-        private readonly ServicioTransient servicioTransient;
-        private readonly ServicioScoped servicioScoped;
-        private readonly ServicioSingleton servicioSingleton;
-        private readonly ILogger<AutoresController> logger;
-        */
-        public AutoresController(ApplicationDbContext context, IServicio servicio/*, ServicioTransient servicioTransient,
-            ServicioScoped servicioScoped, ServicioSingleton servicioSingleton, ILogger<AutoresController> logger*/) 
+       
+        public AutoresController(ApplicationDbContext context) 
         {
             this.context = context;
-            /*
-            this.servicio = servicio;
-            this.servicioTransient = servicioTransient;
-            this.servicioScoped = servicioScoped;
-            this.servicioSingleton = servicioSingleton;
-            this.logger = logger;
-            */
         }
-
-
-        //[HttpGet("GUID")]
-        /*
-         * Si llega una primera http a la ruta se le retorna el OK de ActionResult, pero las proximas peticiones HTTP que lleguen
-         * en los próximos 10 segundos se van a servir del caché, es decir, el contenido del return ok se guardará en memoria y eso va a ser 
-         * lo que se le va a responder a los usuarios dentro de los 10 segundos después de la última respuesta.
-         */
-        // [ResponseCache(Duration = 10)]
-        /*
-        [ServiceFilter(typeof(MiFiltroDeAccion))] //Nuestro filtro de acción
-        public ActionResult ObtenerGuids()
-        {
-            return Ok(new
-            {
-                AutoresController_Transient = servicioTransient.Guid,
-                ServicioA_Transient = servicio.ObrenerTransient(),
-                AutoresController_Scoped = servicioScoped.Guid,
-                ServicioA_Scoped = servicio.ObrenerScoped(),
-                AutoresController_Singleton = servicioSingleton.Guid,
-                ServicioA_Singleton = servicio.ObrenerSingleton()
-            });
-
-        }
-        */
-
-        /*
-         * Obtener datos de la bd (enviarle datos al cliente)
-         */
-
-        // [HttpGet("listado")]//   api/autores/listado
-        // [HttpGet("/listado")]//  listado    (Las rutas se heredan desde la ruta que ponemos arriba, si la queremos cambiar tenemos que ponerle la barra)
-        // [Authorize] //Solo con poner Authorize estamos protegiendo este end point que tenemos en lista de autores, no tenemos lista de usuarios pero podemos usarlo igual
-        // En cuanto intentemos sacar este listado nos dará un error 401 unauthorized porque no estamos en la lista de usuarios que pueden acceder
 
         [HttpGet]//  api/autores
         public async Task<List<Autor>> Get()
         {
-            /*
-            throw new NotImplementedException();
-            logger.LogInformation("Estamos obteniendo los autores");
-            servicio.RealizarTarea();
-            */
             return await context.Autores/*.Include(x => x.Libros)*/.ToListAsync();
         }
-
-        /*
-         * Si no cambiamos la ruta al httpGet (dentro de los paréntesis) vamos a tener un error a la hora de
-         * ejecutar o abrir la página porque cogería la misma ruta para los dos httpGet, tenemos que cambiarle la última
-         * palabra de la ruta para que no sea la misma.
-         
-        [HttpGet("primero")] //Ruta: api/autores/primero
-        public async Task<ActionResult<Autor>> PrimerAutor([FromHeader] int mivalor)
-        {
-            //Con FirstOrDefaultAsync obtenemos el primer registro de la tabla o null si no hay ningun registro
-            return await context.Autores.FirstOrDefaultAsync();
-        }
-        */
 
 
         /*
