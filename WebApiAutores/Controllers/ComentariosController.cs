@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileSystemGlobbing.Internal.PatternContexts;
 using WebApiAutores.DTOs;
 using WebApiAutores.Entidades;
 
@@ -30,6 +31,18 @@ namespace WebApiAutores.Controllers
             return mapper.Map<List<ComentarioDTO>>(comentarios);
         }
 
+        [HttpGet("{id:int}", Name = "obtenerComentarios")]
+        public async Task<ActionResult<ComentarioDTO>> GetById(int id)
+        {
+            var comentario = await context.Comentarios.FirstOrDefaultAsync(comentarioDB => comentarioDB.Id == id);  
+            if (comentario == null)
+            {
+                return NotFound();
+            }
+            
+            return mapper.Map<ComentarioDTO>(comentario);
+        }
+
         [HttpPost]
         public async Task<ActionResult> Post(int libroId, ComentarioCreacionDTO comentarioCreacionDTO)
         {
@@ -42,8 +55,33 @@ namespace WebApiAutores.Controllers
             comentario.LibroId = libroId;   
             context.Add(comentario);
             await context.SaveChangesAsync();
-            return Ok();
+
+            var comentarioDTO = mapper.Map<ComentarioDTO>(comentario);
+
+            return CreatedAtRoute("obtenerComentarios", new { id = comentario.Id, libroId = libroId}, comentarioDTO);
         }
 
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult> Put(int libroId, int id, ComentarioCreacionDTO comentarioCreacionDTO)
+        {
+            var existeLibros = await context.Libros.AnyAsync(libroBD => libroBD.Id == libroId);
+            if (!existeLibros)
+            {
+                return NotFound();
+            }
+
+             var existeComentario = await context.Comentarios.AnyAsync(comentarioDB => comentarioDB.Id == id);
+            if (!existeComentario)
+            {
+                return NotFound();
+            }
+
+            var comentario = mapper.Map<Comentario>(comentarioCreacionDTO);
+            comentario.Id = id;
+            comentario.LibroId = libroId;
+            context.Update(comentario);
+            await context.SaveChangesAsync();
+            return NoContent();
+        }
     }
 }

@@ -5,6 +5,8 @@ namespace WebApiAutores.DTOs
     {
         public int Id { get; set; }
         public string Titulo { get; set; }
+        public DateTime FechaPublicacion { get; set; }
+
 
         /*
          * Incluimos una lista de comentarios para hacer un join con la tabla 
