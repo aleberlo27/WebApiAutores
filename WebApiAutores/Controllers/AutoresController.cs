@@ -1,13 +1,13 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebApiAutores.DTOs;
 using WebApiAutores.Entidades;
 using WebApiAutores.Filtros;
 
 namespace WebApiAutores.Controllers
 {
-    //Lo que va dentro de los corchetes son atributos
-
     [ApiController] //Permite hacer validaciones automaticas respecto a la data recibida en nuestro controlador
     [Route("api/autores")] //Declaramos la ruta en la que = esta clase va a recibir las peticiones
     
@@ -15,74 +15,72 @@ namespace WebApiAutores.Controllers
     {
 
         private readonly ApplicationDbContext context;
-       
-        public AutoresController(ApplicationDbContext context) 
+        private readonly IMapper mapper;
+
+        public AutoresController(ApplicationDbContext context, IMapper mapper) 
         {
             this.context = context;
+            this.mapper = mapper;
         }
 
-        [HttpGet]//  api/autores
-        public async Task<List<Autor>> Get()
+        [HttpGet]
+        public async Task<List<AutorDTO>> Get()
         {
-            return await context.Autores/*.Include(x => x.Libros)*/.ToListAsync();
+            var autores = await context.Autores.ToListAsync(); //Traer un listado de nuestra tabla de autores
+            return mapper.Map<List<AutorDTO>>(autores);
         }
 
 
-        /*
-         * En la ruta podemos definir variables para obtener solo el autor, en este caso, que queremos visualizar
-         * Si declaramos en la ruta la variable id como int, si metes un string nos retornará un 404.
-         */
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<Autor>> Get(int id)
+        public async Task<ActionResult<AutorDTOConLibros>> Get(int id)
         {
-            var autor = await context.Autores.FirstOrDefaultAsync(x => x.Id == id);
+            var autor = await context.Autores
+                .Include(autorDB => autorDB.AutoresLibros)
+                .ThenInclude(autorlibroDB => autorlibroDB.Libro)
+                .FirstOrDefaultAsync(autorBD => autorBD.Id == id); //Traer solo un resultado que coincida con la condicion
+            
             if (autor == null) 
             {
-                return NotFound();
+                return NotFound(); //404
             }
-            return autor; 
+
+            return mapper.Map<AutorDTOConLibros>(autor); 
         }
 
-        //Buscamos en la bd por el nombre del autor, no podemos poner restricciones porque un dato string nos daría error
+        //Buscamos en la bd por el nombre del autores, no podemos poner restricciones porque un dato string nos daría error
         [HttpGet("{nombre}")]
-        public async Task<ActionResult<Autor>> Get(string nombre)
+        public async Task<ActionResult<List<AutorDTO>>> Get([FromRoute]string nombre)
         {
-            var autor = await context.Autores.FirstOrDefaultAsync(x => x.Nombre.Contains(nombre));
-            if (autor == null)
-            {
-                return NotFound();
-            }
-            return autor;
+            var autores = await context.Autores.Where(autorBD => autorBD.Nombre.Contains(nombre)).ToListAsync();
+
+            return mapper.Map<List<AutorDTO>>(autores);
         }
-        /*
-         * Creación del autor en la base de datos
-         */
+
+        
         [HttpPost]
-        public async Task<ActionResult> Post(Autor autor)
+        public async Task<ActionResult> Post([FromBody] AutorCreacionDTO autorCreacionDTO)
         {
-            var existeAutorConElMismoNombre = context.Autores.AnyAsync(x => x.Nombre == autor.Nombre);
+            var existeAutorConElMismoNombre = context.Autores.AnyAsync(x => x.Nombre == autorCreacionDTO.Nombre);
 
             if (await existeAutorConElMismoNombre)
             {
-                return BadRequest($"Ya existe un autor con el nombre {autor.Nombre}");
+                return BadRequest($"Ya existe un autores con el nombre {autorCreacionDTO.Nombre}");
             }
+            
+            var autor = mapper.Map<Autor>(autorCreacionDTO);
 
             context.Add(autor);
             await context.SaveChangesAsync();
             return Ok();
         }
 
-        /*
-         * Actualización de los datos de la bd
-         * Cuando colocamos el valor de id como int dentro del httpPut lo que hacemos es que solo
-         * valgan valores enteros en ese campo.
-         */
-        [HttpPut("{id:int}")] //  api/autores/1 (o 2, o 3, o 4...)
+      
+        [HttpPut("{id:int}")]
         public async Task<ActionResult> Put(Autor autor, int id) 
         {
             if (autor.Id != id)
             {
-                return BadRequest("El id del autor no coincide con el id de la URL.");
+                return BadRequest("El id del autores no coincide con el id de la URL.");
             }
 
             //Nos aseguramos de que el id que ha metido por parámetro exista en la bd
@@ -93,7 +91,7 @@ namespace WebApiAutores.Controllers
                 return NotFound();
             }
 
-            //Aqui no hacemos la actualización, solo marcamos el autor que queremos actualizar
+            //Aqui no hacemos la actualización, solo marcamos el autores que queremos actualizar
             context.Update(autor);
 
             //La actualización a nivel de base de datos se marca por el SaveChangesAsync
@@ -102,9 +100,6 @@ namespace WebApiAutores.Controllers
 
         }
 
-        /*
-         * Borrado de algun dato de la base de datos
-         */
         [HttpDelete("{id:int}")] //  api/autores/id
         public async Task<ActionResult> Delete(int id)
         {
