@@ -10,7 +10,8 @@ namespace WebApiAutores.Controllers
 {
     [ApiController] //Permite hacer validaciones automaticas respecto a la data recibida en nuestro controlador
     [Route("api/autores")] //Declaramos la ruta en la que = esta clase va a recibir las peticiones
-    
+    //Con authorize lo que hacemos es que salte un 401 para el usuario (unauthorized) y no pueda obtener el listado de autores
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)] //Usamos el AddIdentity en la clase startup, entonces tenemos que poner el JwtBearerDefaults
     public class AutoresController : ControllerBase
     {
 
@@ -26,8 +27,7 @@ namespace WebApiAutores.Controllers
         }
 
         [HttpGet]
-        //Con authorize lo que hacemos es que salte un 401 para el usuario (unauthorized) y no pueda obtener el listado de autores
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)] //Usamos el AddIdentity en la clase startup, entonces tenemos que poner el JwtBearerDefaults
+        [AllowAnonymous] //Para que el atributo authorize en este campo sea NO autorizado, que no tengas que poner tus credenciales ni el token 
         public async Task<List<AutorDTO>> Get()
         {
             var autores = await context.Autores.ToListAsync(); //Traer un listado de nuestra tabla de autores
