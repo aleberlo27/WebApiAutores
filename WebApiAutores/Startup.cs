@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json.Serialization;
-using WebApiAutores.Controllers;
 using WebApiAutores.Filtros;
 using WebApiAutores.Middlewares;
 
@@ -37,7 +38,14 @@ namespace WebApiAutores
                 c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "WebAPIAutores", Version = "v1" });
             });
 
+
+            //Servicio para poder usar automapper en la clase Utilidades
             services.AddAutoMapper(typeof(Startup));
+
+            //Servicios para el Identity Framework, creación de tablas objeto relacionales pra .NET
+            services.AddIdentity<IdentityUser, IdentityRole>()
+                .AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddDefaultTokenProviders();
         }
 
         public void Configure (IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger)

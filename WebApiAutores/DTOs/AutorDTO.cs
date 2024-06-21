@@ -1,5 +1,4 @@
-﻿using Microsoft.Identity.Client;
-
+﻿
 namespace WebApiAutores.DTOs
 {
     public class AutorDTO

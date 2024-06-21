@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApiAutores.DTOs;
 using WebApiAutores.Entidades;
-using WebApiAutores.Filtros;
 
 namespace WebApiAutores.Controllers
 {
@@ -16,14 +16,18 @@ namespace WebApiAutores.Controllers
 
         private readonly ApplicationDbContext context;
         private readonly IMapper mapper;
+        private readonly IConfiguration configuration;
 
-        public AutoresController(ApplicationDbContext context, IMapper mapper) 
+        public AutoresController(ApplicationDbContext context, IMapper mapper, IConfiguration configuration) 
         {
             this.context = context;
             this.mapper = mapper;
+            this.configuration = configuration;
         }
 
         [HttpGet]
+        //Con authorize lo que hacemos es que salte un 401 para el usuario (unauthorized) y no pueda obtener el listado de autores
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)] //Usamos el AddIdentity en la clase startup, entonces tenemos que poner el JwtBearerDefaults
         public async Task<List<AutorDTO>> Get()
         {
             var autores = await context.Autores.ToListAsync(); //Traer un listado de nuestra tabla de autores

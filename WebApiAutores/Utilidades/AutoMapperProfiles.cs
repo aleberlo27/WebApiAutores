@@ -3,7 +3,11 @@ using WebApiAutores.DTOs;
 using WebApiAutores.Entidades;
 
 namespace WebApiAutores.Utilidades
-{
+{   
+    /*
+     * Para poder usar el automapper tenemos que descargarnos la librería: AutoMapper.Extensions.Microsoft.DependencyInjection
+     * también a parte de descargarnos la librería tenemos que realizarle el servicio en Startup.
+     */
     public class AutoMapperProfiles : Profile
     {
         /*
@@ -13,20 +17,20 @@ namespace WebApiAutores.Utilidades
          */
         public AutoMapperProfiles()
         {
-            //En el HttpPost de AutoresController tenemos donde vamos a usar el mapeado 
+            //Mapeado de Autore a los DTOs
             CreateMap<AutorCreacionDTO, Autor>();
             CreateMap<Autor, AutorDTO>();
             CreateMap<Autor, AutorDTOConLibros>().ForMember(autorDTO => autorDTO.Libros, opciones => opciones.MapFrom(MapAutorDTOLibros));
 
+            //Mapeado de Libro a los DTOs
             CreateMap<LibroCreacionDTO, Libro>().ForMember(Libro => Libro.AutoresLibros, opciones => opciones.MapFrom(MapAutoresLibros));
             CreateMap<Libro, LibroDTO>().ReverseMap();
             CreateMap<Libro, LibroDTOConAutores>().ForMember(libroDTO => libroDTO.Autores, opciones => opciones.MapFrom(MapLibroDTOAutores));
             CreateMap<LibroPatchDTO, Libro>().ReverseMap();
 
+            //Mapeado de Comentario a los DTOs
             CreateMap<ComentarioCreacionDTO, Comentario>(); 
             CreateMap<Comentario, ComentarioDTO>();
-
-           
         }
 
 
