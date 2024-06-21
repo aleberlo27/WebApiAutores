@@ -11,7 +11,7 @@ namespace WebApiAutores.Controllers
     [ApiController] //Permite hacer validaciones automaticas respecto a la data recibida en nuestro controlador
     [Route("api/autores")] //Declaramos la ruta en la que = esta clase va a recibir las peticiones
     //Con authorize lo que hacemos es que salte un 401 para el usuario (unauthorized) y no pueda obtener el listado de autores
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)] //Usamos el AddIdentity en la clase startup, entonces tenemos que poner el JwtBearerDefaults
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "EsAdmin")] //Usamos el AddIdentity en la clase startup, entonces tenemos que poner el JwtBearerDefaults
     public class AutoresController : ControllerBase
     {
 
@@ -104,6 +104,7 @@ namespace WebApiAutores.Controllers
             return Ok();
 
         }
+
 
         [HttpDelete("{id:int}")] //  api/autores/id
         public async Task<ActionResult> Delete(int id)

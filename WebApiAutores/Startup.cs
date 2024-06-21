@@ -1,13 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using System.Text.Json.Serialization;
 using WebApiAutores.Filtros;
 using WebApiAutores.Middlewares;
+using WebApiAutores.Servicios;
 
 namespace WebApiAutores
 {
@@ -84,6 +84,47 @@ namespace WebApiAutores
             services.AddIdentity<IdentityUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
+
+            /*
+             * Con este servicio lo que hacemos es que añadimos políticas a la hora de autorización de permisos a un usuario, 
+             * si la app nos detecta que estamos logueados pero no tenemos esos permisos lo que hace es que nos tira un 403
+             * lo que significa que está prohibido realizar la acción que intento realizar.
+             */
+            services.AddAuthorization(opciones =>
+            {
+                //Agregar una política de seguridad para que un usuario Admin pueda realizar acciones que los usuarios normales no pueden
+                opciones.AddPolicy("EsAdmin", politica => politica.RequireClaim("esAdmin"));
+
+                //Podemos tener diferentes claims que puedan hacer distintas acciones unos de otros
+                //opciones.AddPolicy("EsVendedor", politica => politica.RequireClaim("esVendedor"));
+            });
+
+            //Con este añadido tenemos acceso a la protección de datos 
+            services.AddDataProtection();
+
+            /*
+             * Configurando el servicio de cors (uso compartido de recursos entre orígene, una ampliación de la política del mismo origen)
+             * 
+             * Aqui estamos configurando Cors para permitir realizar peticiones HTTP desde un sitio web específico, para una app movil no sirve, solo para
+             * apps web. (Solamente aplicaciones que corren con Angular, React...)
+             */
+            services.AddCors(opciones =>
+            {
+                opciones.AddDefaultPolicy(builder =>
+                {
+                    /*
+                     * Al agregar una política por defecto, agregamos las URLs que tienen acceso a nuestra web api
+                     * Method se refiere a métodos HTTP como post, delete, put...
+                     * AllowAnyHeader para permitir cualquier cabecera, si tu necesitas poner cabeceras que vas a devolver desde tu webAPI
+                     * tu puedes añadir: [].WithExposedHeaders();
+                     */
+                    builder.WithOrigins("https://apirequest.io").AllowAnyMethod().AllowAnyHeader();
+                });
+
+            });
+
+            //Configuramos el servicio de HASH (Como este servicio no guarda estado lo ponemos como Transient)
+            services.AddTransient<HashService>();
         }
 
         public void Configure (IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger)
@@ -96,7 +137,6 @@ namespace WebApiAutores
             /*
              * Si el usuario no elige la ruta1 y elige cualquier otra de usuarios o la que podamos tener
              * se bajará a estos middleware para ejecutar la página normalmente.
-             * 
              */
             if (env.IsDevelopment())
             {
@@ -107,6 +147,9 @@ namespace WebApiAutores
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            //Configurar o añadir el Cors (activar el Cors en nuestra WebAPI)
+            app.UseCors();
 
             //Configuramos el middleware/filtro de autorización y arriba configuramos sus servicios
             app.UseAuthorization();
