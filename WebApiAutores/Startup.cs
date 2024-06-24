@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
 using WebApiAutores.Filtros;
@@ -11,6 +13,9 @@ using WebApiAutores.Middlewares;
 using WebApiAutores.Servicios;
 using WebApiAutores.Utilidades;
 
+
+//Si queremos controlar todas las excepciones en todas las clases a las que el usuario pueda hacer una peticion ponemos un genérico aqui:
+[assembly : ApiConventionType(typeof(DefaultApiConventions))]
 namespace WebApiAutores
 {
     public class Startup
@@ -61,8 +66,27 @@ namespace WebApiAutores
             services.AddSwaggerGen(c => 
             {
                 //Configurando los servicios para que pueda usar las 2 versiones que tenemos de autoresController
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "WebAPIAutores", Version = "v1" });
-                c.SwaggerDoc("v2", new OpenApiInfo { Title = "WebAPIAutores", Version = "v2" });
+                c.SwaggerDoc("v1", new OpenApiInfo { 
+                    Title = "WebAPIAutores", 
+                    Version = "v1",
+                    Description = "Este es un web api para trabajar con autores y libros.",
+                    Contact = new OpenApiContact
+                    {
+                        Email = "alejandra@gmail.com",
+                        Name = "Alejandra Bernal"
+                        //Url = ... 
+                    },
+                    License = new OpenApiLicense
+                    {
+                        Name = "MIT"
+                    },
+                    //TermsOfService = ...
+                    
+                });
+                c.SwaggerDoc("v2", new OpenApiInfo { 
+                    Title = "WebAPIAutores", 
+                    Version = "v2" 
+                });
 
                 //Configuración de parámetros en swagger
                 c.OperationFilter<AgregarParametroHATEOAS>();
@@ -94,6 +118,10 @@ namespace WebApiAutores
                     }
                 });
 
+                //Configuración de los comentarios de cada peticion a la DB que se hacen en la clase de controllers con 3 slash (ej: en delete de AutoresController)
+                var archivoXML = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var rutaXML = Path.Combine(AppContext.BaseDirectory, archivoXML);
+                c.IncludeXmlComments(rutaXML);
             });
 
 

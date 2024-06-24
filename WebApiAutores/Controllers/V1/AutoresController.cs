@@ -15,6 +15,8 @@ namespace WebApiAutores.Controllers.V1
     [CabeceraEstaPresente("x-version","1")]
     //Con authorize lo que hacemos es que salte un 401 para el usuario (unauthorized) y no pueda obtener el listado de autores
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "EsAdmin")] //Usamos el AddIdentity en la clase startup, entonces tenemos que poner el JwtBearerDefaults
+    //Aqui controlamos las respuestas que da el servidor al usuario, las documentamos en cada petición que podría hacer el usuario a la bd 
+    [ApiConventionType(typeof(DefaultApiConventions))] //También se pueden controlar en cada peticion (ej en el GET con ID de autor)
     public class AutoresController : ControllerBase
     {
 
@@ -44,6 +46,10 @@ namespace WebApiAutores.Controllers.V1
         [HttpGet("{id:int}", Name = "obtenerAutorv1")]
         [AllowAnonymous]
         [ServiceFilter(typeof(HATEOASAutorFilterAttribute))]
+        //Si controlamos varios errores al meterte dentro del get con id abajo antes de ejecutar te dirá que te pueden salir estas respuestas
+        //[ProducesResponseType(404)] //Con este response controlamos que la app pueda sacar un 404 documentado, sino sacaria un 404 unndocumented
+        //[ProducesResponseType(200)] //Este response controlamos el 200 que pueda dar la app
+
         public async Task<ActionResult<AutorDTOConLibros>> Get(int id)
         {
             var autor = await context.Autores
@@ -115,7 +121,12 @@ namespace WebApiAutores.Controllers.V1
 
         }
 
-
+        //Con 3 slash agregamos el comentario que queremos que salga en pantalla cuando vayamos a borrar el autor, se tiene que configurar en Startup
+        /// <summary>
+        /// Borra un autor
+        /// </summary>
+        /// <param name="id"> ID del autor a borrar </param>
+        /// <returns></returns>
         [HttpDelete("{id:int}", Name = "borrarAutorv1")] //  api/autores/id
         public async Task<ActionResult> Delete(int id)
         {
