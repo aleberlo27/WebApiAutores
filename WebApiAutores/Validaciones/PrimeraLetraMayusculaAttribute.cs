@@ -2,6 +2,7 @@
 
 namespace WebApiAutores.Validaciones
 {
+    //Tiene solamente una dependencia, el ValidationAttribute que para hacer el test unitario no necesitamos saber qué hace esa clase
     public class PrimeraLetraMayusculaAttribute : ValidationAttribute
     {
         protected override ValidationResult IsValid(object value, ValidationContext validationContext)

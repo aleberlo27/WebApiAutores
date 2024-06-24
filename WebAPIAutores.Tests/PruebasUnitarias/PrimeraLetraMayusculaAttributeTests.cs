@@ -5,7 +5,7 @@ using WebApiAutores.Validaciones;
 
 namespace WebAPIAutores.Tests.PruebasUnitarias
 {
-    [TestClass]
+    [TestClass] //PRUEBAS UNITARIAS
     public class PrimeraLetraMayusculaAttributeTests
     {
         [TestMethod]

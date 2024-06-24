@@ -20,6 +20,7 @@ namespace WebApiAutores.Controllers.V1
          */
         private readonly IAuthorizationService authorizationService;
 
+        //Dependencia 1: IAuthorizationService la cual usamos para saber si el usuario es administrador (Para hacer el test no necesitamos saber qué hace) => MOCKS
         public RootController(IAuthorizationService authorizationService)
         {
             this.authorizationService = authorizationService;
@@ -36,7 +37,7 @@ namespace WebApiAutores.Controllers.V1
 
             //Con "self" nos referimos a donde apuntamos, apuntamos a donde el mismo usuario se encuentra
             datosHateoas.Add(new DateHATEOAS(
-                enlace: Url.Link("ObtenerRoot", new { }),
+                enlace: Url.Link("ObtenerRoot", new { }), //Dependencia 2: Url que viene heredado de ControllerBase (Para hacer el test no necesitamos saber qué hace) => MOCKS
                 descripcion: "self",
                 metodo: "GET"));
 
