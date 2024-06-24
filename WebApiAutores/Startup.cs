@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -8,6 +9,7 @@ using System.Text.Json.Serialization;
 using WebApiAutores.Filtros;
 using WebApiAutores.Middlewares;
 using WebApiAutores.Servicios;
+using WebApiAutores.Utilidades;
 
 namespace WebApiAutores
 {
@@ -26,8 +28,17 @@ namespace WebApiAutores
                 //Declaramos de manera global el filtro que hemos creado como personalizado
                 opciones.Filters.Add(typeof(FiltroDeExcepcion));
 
+                //Declaramos el controlador de versiones con la clase que hemos creado en utilidades
+                opciones.Conventions.Add(new SwaggerAgrupaPorVersion());
+
             }).AddJsonOptions(x => x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles).AddNewtonsoftJson(); //Aquí añadimos la configuración de NewtonSoft
 
+            /*
+             * CONFIGURACIÓN DE SERVICIO PARA LA CONEXIÓN A LA BD 
+             * 
+             * Esta es la clase que utilizamos en el código de nuestra aplicación para interactuar con la base de datos subyacente.
+             * Es esta clase la que administra la conexión de la base de datos y se utiliza para recuperar y guardar datos en la base de datos.
+             */
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("defaultConnection")));
 
             /* 
@@ -48,8 +59,14 @@ namespace WebApiAutores
 
             //CONFIGURACIÓN SWAGGER PARA QUE UTILICE LOS JWT (Json Web Token)
             services.AddSwaggerGen(c => 
-            { 
-                c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "WebAPIAutores", Version = "v1" });
+            {
+                //Configurando los servicios para que pueda usar las 2 versiones que tenemos de autoresController
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "WebAPIAutores", Version = "v1" });
+                c.SwaggerDoc("v2", new OpenApiInfo { Title = "WebAPIAutores", Version = "v2" });
+
+                //Configuración de parámetros en swagger
+                c.OperationFilter<AgregarParametroHATEOAS>();
+
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Name= "Authorization",
@@ -93,7 +110,7 @@ namespace WebApiAutores
             services.AddAuthorization(opciones =>
             {
                 //Agregar una política de seguridad para que un usuario Admin pueda realizar acciones que los usuarios normales no pueden
-                opciones.AddPolicy("EsAdmin", politica => politica.RequireClaim("esAdmin"));
+                opciones.AddPolicy("esAdmin", politica => politica.RequireClaim("esAdmin"));
 
                 //Podemos tener diferentes claims que puedan hacer distintas acciones unos de otros
                 //opciones.AddPolicy("EsVendedor", politica => politica.RequireClaim("esVendedor"));
@@ -101,6 +118,10 @@ namespace WebApiAutores
 
             //Con este añadido tenemos acceso a la protección de datos 
             services.AddDataProtection();
+
+
+            //Configuramos el servicio de HASH (Como este servicio no guarda estado lo ponemos como Transient)
+            services.AddTransient<HashService>();
 
             /*
              * Configurando el servicio de cors (uso compartido de recursos entre orígene, una ampliación de la política del mismo origen)
@@ -123,15 +144,16 @@ namespace WebApiAutores
 
             });
 
-            //Configuramos el servicio de HASH (Como este servicio no guarda estado lo ponemos como Transient)
-            services.AddTransient<HashService>();
+            //Configuramos los servicios del GeneradorEnlaces para poder usarlo en las demás clases
+            services.AddTransient<GeneradorEnlaces>();
+            services.AddTransient<HATEOASAutorFilterAttribute>();   
+            services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
+
         }
 
         public void Configure (IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger)
         {
            
-            //Esta línea de abajo es la misma que la de arriba solo que no exposeamos la clase que estamos usando, solo el método 
-
             app.UseLoguearRespuestaHTTP();
 
             /*
@@ -140,10 +162,20 @@ namespace WebApiAutores
              */
             if (env.IsDevelopment())
             {
-                app.UseSwagger();
-                app.UseSwaggerUI();
+                app.UseDeveloperExceptionPage();
             }
 
+            //Configurando la app para que pueda usar las 2 versiones que tenemos de autoresController
+            app.UseSwagger();
+            app.UseSwaggerUI(c => {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "WebApiAutores v1");
+                c.SwaggerEndpoint("/swagger/v2/swagger.json", "WebApiAutores v2");
+                });
+
+            /*
+             * Este middleware sirve para redirigir peticiones HTTP a HTTPS, obligamos a nuestros clientes
+             * a conectarse a nuestra app con HTTPS.
+             */
             app.UseHttpsRedirection();
 
             app.UseRouting();

@@ -7,10 +7,10 @@ using Microsoft.EntityFrameworkCore;
 using WebApiAutores.DTOs;
 using WebApiAutores.Entidades;
 
-namespace WebApiAutores.Controllers
+namespace WebApiAutores.Controllers.V1
 {
     [ApiController]
-    [Route("api/libros/{libroId:int}/comentarios")]
+    [Route("api/v1/libros/{libroId:int}/comentarios")]
     public class ComentariosController : ControllerBase
     {
         private readonly ApplicationDbContext context;
@@ -24,7 +24,7 @@ namespace WebApiAutores.Controllers
             this.userManager = userManager;
         }
 
-        [HttpGet]
+        [HttpGet(Name = "obtenerComentariosLibro")]
         public async Task<ActionResult<List<ComentarioDTO>>> Get(int libroId)
         {
             var existeLibros = await context.Libros.AnyAsync(libroBD => libroBD.Id == libroId);
@@ -39,16 +39,16 @@ namespace WebApiAutores.Controllers
         [HttpGet("{id:int}", Name = "obtenerComentarios")]
         public async Task<ActionResult<ComentarioDTO>> GetById(int id)
         {
-            var comentario = await context.Comentarios.FirstOrDefaultAsync(comentarioDB => comentarioDB.Id == id);  
+            var comentario = await context.Comentarios.FirstOrDefaultAsync(comentarioDB => comentarioDB.Id == id);
             if (comentario == null)
             {
                 return NotFound();
             }
-            
+
             return mapper.Map<ComentarioDTO>(comentario);
         }
 
-        [HttpPost]
+        [HttpPost(Name = "crearComentario")]
         //Necesitamos autorización de usuario para poder escribir comentarios en los libros
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult> Post(int libroId, ComentarioCreacionDTO comentarioCreacionDTO)
@@ -82,7 +82,7 @@ namespace WebApiAutores.Controllers
             var comentario = mapper.Map<Comentario>(comentarioCreacionDTO);
 
             //Igualamos las variables una vez autentificado el usuario para que el comentario en la tabla sql tenga el campo usuarioId
-            comentario.LibroId = libroId;   
+            comentario.LibroId = libroId;
             comentario.UsuarioId = usuarioId;
 
             context.Add(comentario);
@@ -90,10 +90,10 @@ namespace WebApiAutores.Controllers
 
             var comentarioDTO = mapper.Map<ComentarioDTO>(comentario);
 
-            return CreatedAtRoute("obtenerComentarios", new { id = comentario.Id, libroId = libroId}, comentarioDTO);
+            return CreatedAtRoute("obtenerComentarios", new { id = comentario.Id, libroId }, comentarioDTO);
         }
 
-        [HttpPut("{id:int}")]
+        [HttpPut("{id:int}", Name = "actualizarComentario")]
         public async Task<ActionResult> Put(int libroId, int id, ComentarioCreacionDTO comentarioCreacionDTO)
         {
             var existeLibros = await context.Libros.AnyAsync(libroBD => libroBD.Id == libroId);
@@ -102,7 +102,7 @@ namespace WebApiAutores.Controllers
                 return NotFound();
             }
 
-             var existeComentario = await context.Comentarios.AnyAsync(comentarioDB => comentarioDB.Id == id);
+            var existeComentario = await context.Comentarios.AnyAsync(comentarioDB => comentarioDB.Id == id);
             if (!existeComentario)
             {
                 return NotFound();

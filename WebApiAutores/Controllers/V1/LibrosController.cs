@@ -5,22 +5,22 @@ using Microsoft.EntityFrameworkCore;
 using WebApiAutores.DTOs;
 using WebApiAutores.Entidades;
 
-namespace WebApiAutores.Controllers
+namespace WebApiAutores.Controllers.V1
 {
     [ApiController]
-    [Route("api/libros")]
+    [Route("api/v1/libros")]
     public class LibrosController : ControllerBase
     {
         private readonly ApplicationDbContext context;
         private readonly IMapper mapper;
 
-        public LibrosController(ApplicationDbContext context, IMapper mapper) 
+        public LibrosController(ApplicationDbContext context, IMapper mapper)
         {
             this.context = context;
             this.mapper = mapper;
         }
 
-        
+
         [HttpGet("{id:int}", Name = "obtenerLibro")]
         public async Task<ActionResult<LibroDTOConAutores>> Get(int id)
         {
@@ -47,21 +47,21 @@ namespace WebApiAutores.Controllers
             return mapper.Map<LibroDTOConAutores>(libro);
         }
 
-        [HttpPost]
+        [HttpPost(Name = "crearLibro")]
         public async Task<ActionResult> Post(LibroCreacionDTO libroCreacionDTO)
         {
             if (libroCreacionDTO.AutoresIds == null)
             {
                 return BadRequest("No se puede crear un lbiro sin autores.");
             }
-            
+
             var autoresIds = await context.Autores.Where(autorBD => libroCreacionDTO.AutoresIds.Contains(autorBD.Id)).Select(x => x.Id).ToListAsync();
 
-            if(libroCreacionDTO.AutoresIds.Count !=  autoresIds.Count)
+            if (libroCreacionDTO.AutoresIds.Count != autoresIds.Count)
             {
                 return BadRequest("No existe uno de los autores enviados.");
             }
-            
+
             var libro = mapper.Map<Libro>(libroCreacionDTO);
 
             AsignarOrdenAutores(libro);
@@ -71,15 +71,15 @@ namespace WebApiAutores.Controllers
 
             var libroDTO = mapper.Map<LibroDTO>(libro);
 
-            return CreatedAtRoute("obtenerLibro", new { id = libro.Id}, libroCreacionDTO);
+            return CreatedAtRoute("obtenerLibro", new { id = libro.Id }, libroCreacionDTO);
         }
 
-        [HttpPut("{id:int}")]
+        [HttpPut("{id:int}", Name = "actualizarLibro")]
         public async Task<ActionResult> Put(int id, LibroCreacionDTO libroCreacionDTO)
         {
             var libroDB = await context.Libros.Include(x => x.AutoresLibros).FirstOrDefaultAsync(x => x.Id == id);
 
-            if (libroDB == null) 
+            if (libroDB == null)
             {
                 return NotFound();
             }
@@ -87,7 +87,7 @@ namespace WebApiAutores.Controllers
 
             AsignarOrdenAutores(libroDB);
 
-            await context.SaveChangesAsync();   
+            await context.SaveChangesAsync();
             return NoContent(); //202
         }
 
@@ -106,10 +106,10 @@ namespace WebApiAutores.Controllers
         /* Para usar el PATCH en Json tenemos que instalar un paquete desde NuGet que se llama: Microsoft.AspNetCore.Mvc.NewtonsoftJson
          * También en la clase Startup tenemos que configurar NewtonSoft en nuestra aplicación
          */
-        [HttpPatch("{id:int}")]
+        [HttpPatch("{id:int}", Name = "patchLibro")]
         public async Task<ActionResult> Patch(int id, JsonPatchDocument<LibroPatchDTO> patchDocument)
         {
-            if(patchDocument == null)
+            if (patchDocument == null)
             {
                 return BadRequest();
             }
@@ -138,13 +138,13 @@ namespace WebApiAutores.Controllers
                 return BadRequest(ModelState);
             }
 
-            mapper.Map(libroDTO,libroDB);
+            mapper.Map(libroDTO, libroDB);
 
             await context.SaveChangesAsync();
             return NoContent();
         }
 
-        [HttpDelete("{id:int}")] 
+        [HttpDelete("{id:int}", Name = "borrarLibro")]
         public async Task<ActionResult> Delete(int id)
         {
             //AnyAsync quiere decir que si existe alguno en la bd, estamos llendo a la tabla autores y a ver si existe
