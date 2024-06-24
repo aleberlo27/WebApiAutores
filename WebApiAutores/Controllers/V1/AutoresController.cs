@@ -34,9 +34,11 @@ namespace WebApiAutores.Controllers.V1
         [HttpGet(Name = "obtenerAutoresv1")]
         [AllowAnonymous] //Para que el atributo authorize en este campo sea NO autorizado, que no tengas que poner tus credenciales ni el token 
         [ServiceFilter(typeof(HATEOASAutorFilterAttribute))]
-        public async Task<ActionResult<List<AutorDTO>>> Get()
+        public async Task<ActionResult<List<AutorDTO>>> Get([FromQuery] PaginacionDTO paginacionDTO)
         {
-            var autores = await context.Autores.ToListAsync(); //Traer un listado de nuestra tabla de autores
+            var queryable = context.Autores.AsQueryable();
+            await HttpContext.InsertarParametrosPaginacionEnCabecera(queryable);
+            var autores = await queryable.OrderBy(autor => autor.Nombre).Paginar(paginacionDTO).ToListAsync(); 
 
             return mapper.Map<List<AutorDTO>>(autores);
 

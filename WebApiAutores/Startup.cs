@@ -170,7 +170,8 @@ namespace WebApiAutores
                      * AllowAnyHeader para permitir cualquier cabecera, si tu necesitas poner cabeceras que vas a devolver desde tu webAPI
                      * tu puedes añadir: [].WithExposedHeaders();
                      */
-                    builder.WithOrigins("https://apirequest.io").AllowAnyMethod().AllowAnyHeader();
+                    builder.WithOrigins("https://apirequest.io").AllowAnyMethod().AllowAnyHeader()
+                        .WithExposedHeaders(new string[] { "cantidadTotalRegistros" });
                 });
 
             });
