@@ -67,6 +67,9 @@ namespace WebApiAutores
                 //Configuración de parámetros en swagger
                 c.OperationFilter<AgregarParametroHATEOAS>();
 
+                //Configurar servicios de Agregar parámetro por x-version
+                c.OperationFilter<AgregarParametroXVersion>();
+
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Name= "Authorization",
